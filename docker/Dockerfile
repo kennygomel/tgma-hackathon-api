@@ -1,7 +1,5 @@
-ARG NODE_VERSION="lts-alpine"
-
 # ----------- Build Stage -----------
-FROM node:${NODE_VERSION} AS build
+FROM node:lts-alpine AS build
 
 WORKDIR /app
 
@@ -14,7 +12,7 @@ COPY .. .
 RUN yarn build
 
 # ----------- Production Stage -----------
-FROM node:${NODE_VERSION} AS production
+FROM node:lts-alpine AS production
 
 ENV NODE_ENV=production
 
@@ -26,6 +24,6 @@ COPY --from=build /app/dist ./dist
 
 RUN yarn install --frozen-lockfile --production
 
-EXPOSE 2000
+EXPOSE 3000
 
 CMD ["node", "dist/main"]
