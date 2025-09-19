@@ -3,7 +3,6 @@ import { JwtService } from "@nestjs/jwt";
 import { parse, isValid } from "@telegram-apps/init-data-node";
 import { randomUUID } from "crypto";
 import * as fastify from "fastify";
-import * as argon2 from "argon2";
 import { Observable, of, switchMap } from "rxjs";
 import {
   ACCESS_TOKEN_EXPIRATION,
