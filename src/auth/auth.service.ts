@@ -90,7 +90,7 @@ export class AuthService {
 
   private signRefresh(user: User | AuthUser, jti: string) {
     return this.jwtService.sign(
-      { sub: user.id, jti },
+      { sub: user.id, telegram_id: user.telegram_id, jti },
       {
         secret: process.env.JWT_REFRESH_SECRET as string,
         expiresIn: REFRESH_TOKEN_EXPIRATION,
