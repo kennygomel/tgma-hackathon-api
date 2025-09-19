@@ -3,135 +3,67 @@ import {
   BadRequestException,
   Controller,
   Get,
-  HttpStatus,
+  HttpCode,
   Post,
   Req,
   Res,
-  UnauthorizedException,
+  UseGuards,
 } from "@nestjs/common";
-import { parse, isValid } from "@telegram-apps/init-data-node";
-import * as jwt from "jsonwebtoken";
-import { map, of, switchMap, tap } from "rxjs";
+import { from, map, Observable, switchMap } from "rxjs";
+import { AuthService } from "src/auth/auth.service";
+import { JwtRefreshGuard } from "src/auth/guards/jwt-refresh.guard";
+import { CurrentUser } from "src/auth/shared/current-user.decorator";
+import { Public } from "src/auth/shared/public.decorator";
+import { AuthUser } from "src/auth/types/auth-user";
 import { User } from "src/user/entities/user.entity";
-import { UserService } from "src/user/user.service";
-
-type AuthUser = Pick<User, "id" | "telegram_id">;
-
-const COOKIES_OPTION = {
-  httpOnly: true,
-  sameSite: "lax" as const,
-  secure: process.env.SECURE_COOKIES === "true",
-  path: "/",
-};
 
 @Controller("auth")
 export class AuthController {
-  constructor(private userService: UserService) {}
+  constructor(private authService: AuthService) {}
 
+  @Public()
   @Post("sign-in")
-  signIn(@Req() req: fastify.FastifyRequest, @Res() res: fastify.FastifyReply) {
+  @HttpCode(200)
+  signIn(
+    @Req() req: fastify.FastifyRequest,
+    @Res({ passthrough: true }) res: fastify.FastifyReply,
+  ): Observable<{ user: AuthUser }> {
     const { initData } = req.body as { initData: string };
 
-    const isInitDataValid = isValid(
-      initData,
-      process.env.TELEGRAM_BOT_TOKEN as string,
-    );
+    const isInitDataValid = this.authService.validateInitData(initData);
 
     if (!isInitDataValid) {
       throw new BadRequestException("AUTH__INVALID_INITDATA");
     }
 
-    const telegram_id = parse(initData).user?.id.toString();
+    const telegram_id = this.authService
+      .parseInitData(initData)
+      .user?.id.toString();
 
     if (!telegram_id) {
       throw new BadRequestException("AUTH__INVALID_INITDATA");
     }
 
-    return this.userService.findByTelegramId(telegram_id).pipe(
-      switchMap((user: User | null) =>
-        user ? of(user) : this.userService.create({ telegram_id }),
-      ),
-      tap((user: User | null) => {
-        if (!user) {
-          throw new BadRequestException("AUTH__USER_NOT_FOUND");
-        }
-      }),
-      map((_user: User) => {
-        const { id, telegram_id } = _user;
-        const user = { id, telegram_id };
-
-        res.cookie(
-          "ACCESS_TOKEN",
-          this.generateAccessToken(user),
-          COOKIES_OPTION,
-        );
-        res.cookie(
-          "REFRESH_TOKEN",
-          this.generateRefreshToken(user),
-          COOKIES_OPTION,
-        );
-
-        res.status(HttpStatus.OK).send(true); // Отправляем успешный ответ
-      }),
-    );
+    return this.authService
+      .authorizeTelegramUser(telegram_id.toString())
+      .pipe(switchMap((user: User) => from(this.authService.login(user, res))));
   }
 
-  @Get("protected")
-  protected(
-    @Req() req: fastify.FastifyRequest,
-    @Res() res: fastify.FastifyReply,
-  ) {
-    const { ACCESS_TOKEN, REFRESH_TOKEN } = req.cookies;
-
-    if (!ACCESS_TOKEN || !REFRESH_TOKEN) {
-      throw new UnauthorizedException();
-    }
-
-    let isCurrentValid = true;
-
-    try {
-      jwt.verify(ACCESS_TOKEN, process.env.JWT_SECRET as string);
-      res.status(HttpStatus.OK).send(true);
-    } catch {
-      isCurrentValid = false;
-    }
-
-    if (isCurrentValid) {
-      return;
-    }
-
-    try {
-      const user = jwt.verify(
-        REFRESH_TOKEN,
-        process.env.JWT_REFRESH_SECRET as string,
-      ) as AuthUser;
-
-      res.cookie(
-        "ACCESS_TOKEN",
-        this.generateAccessToken(user),
-        COOKIES_OPTION,
-      );
-      res.cookie(
-        "REFRESH_TOKEN",
-        this.generateRefreshToken(user),
-        COOKIES_OPTION,
-      );
-    } catch {
-      throw new UnauthorizedException();
-    }
-
-    return res.status(HttpStatus.OK).send(true);
+  @Get("me")
+  me(@CurrentUser() user: any) {
+    return user;
   }
 
-  private generateAccessToken(user: AuthUser): string {
-    return jwt.sign(user, process.env.JWT_SECRET as string, {
-      expiresIn: "5m",
-    });
-  }
+  @Public()
+  @Post("refresh")
+  @UseGuards(JwtRefreshGuard)
+  @HttpCode(200)
+  refresh(
+    @CurrentUser() payload: any,
+    @Res({ passthrough: true }) res: fastify.FastifyReply,
+  ): Observable<{ user: AuthUser }> {
+    const user = { id: payload.sub, telegram_id: payload.telegram_id };
 
-  private generateRefreshToken(user: AuthUser): string {
-    return jwt.sign(user, process.env.JWT_REFRESH_SECRET as string, {
-      expiresIn: "7d",
-    });
+    return from(this.authService.rotateRefresh(user, res));
   }
 }

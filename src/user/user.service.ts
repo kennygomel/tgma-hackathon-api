@@ -24,7 +24,7 @@ export class UserService extends BaseService<User> {
   findByTelegramId(telegram_id: string): Observable<User | null> {
     return from(
       this.repository.findOne({
-        where: { telegram_id },
+        where: { telegram_id: telegram_id },
         ...(this.isCacheEnabled && { cache: this.itemCacheTimeout }),
       }),
     );
