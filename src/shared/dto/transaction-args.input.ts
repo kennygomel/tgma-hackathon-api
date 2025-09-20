@@ -1,5 +1,5 @@
 import { IsOptional, Max, Min } from "class-validator";
-import { TransactionType } from "src/sub-account/enums/transaction-type.enum";
+import { TransactionType } from "src/shared/enums/transaction-type.enum";
 
 export class TransactionArgsInput {
   @Min(0)

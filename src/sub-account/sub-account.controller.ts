@@ -5,16 +5,13 @@ import {
   NotImplementedException,
   Param,
   Post,
-  Put,
 } from "@nestjs/common";
 import { Observable } from "rxjs";
+import { TransactionArgsInput } from 'src/shared/dto/transaction-args.input';
 import { PaginatedResponse } from "src/shared/models/paginated-response.model";
+import { Transaction } from "src/shared/models/transaction.model";
 import { CreateSubAccountInput } from "src/sub-account/dto/create-sub-account.input";
-import { DepositInput } from 'src/sub-account/dto/deposit.input';
 import { SubAccountArgsInput } from "src/sub-account/dto/sub-account-args.input";
-import { TransactionArgsInput } from "src/sub-account/dto/transaction-args.input";
-import { WithdrawInput } from "src/sub-account/dto/withdraw.input";
-import { SubAccountTransaction } from "src/sub-account/models/sub-account-transaction.model";
 import { SubAccount } from "src/sub-account/models/sub-account.model";
 import { SubAccountService } from "src/sub-account/sub-account.service";
 
@@ -49,7 +46,7 @@ export class SubAccountController {
   getSubAccountTransactions(
     @Param("id") id: string,
     @Param() params: TransactionArgsInput,
-  ): Observable<PaginatedResponse<SubAccountTransaction[]>> {
+  ): Observable<PaginatedResponse<Transaction[]>> {
     return this.subAccountService.getTransactions(id, params);
   }
 
@@ -73,7 +70,7 @@ export class SubAccountController {
   //   @Param("id") id: string,
   //   @Body() input: DepositInput,
   // ): Observable<SubAccountTransaction> {
-  //   return this.subAccountService.withdraw(id, input);
+  //   return this.subAccountService.deposit(id, input);
   // }
   // todo: figure out why API returns "Exchange rate not found"
   @Post(":id/deposit")

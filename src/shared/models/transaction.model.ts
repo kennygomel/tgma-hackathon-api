@@ -1,9 +1,9 @@
 import { CurrencyCode } from "src/shared/enums/currency-code.enum";
-import { TransactionStatus } from "src/sub-account/enums/transaction-status.enum";
-import { TransactionType } from "src/sub-account/enums/transaction-type.enum";
-import { TransactionMerchant } from "src/sub-account/models/transaction-merchant.model";
+import { TransactionStatus } from "src/shared/enums/transaction-status.enum";
+import { TransactionType } from "src/shared/enums/transaction-type.enum";
+import { TransactionMerchant } from "src/shared/models/transaction-merchant.model";
 
-export class SubAccountTransaction {
+export class Transaction {
   vendor_transaction_id: string;
   created_at: string;
   cleared_at: string;

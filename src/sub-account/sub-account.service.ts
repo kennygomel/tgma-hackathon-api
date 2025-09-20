@@ -1,18 +1,18 @@
 import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
 import { AxiosResponse } from "axios";
-import { map, Observable, tap } from "rxjs";
+import { map, Observable } from "rxjs";
 import {
   NONAME_CARDS_API_URL,
   NONAME_CARDS_AXIOS_CONFIG,
 } from "src/shared/constants";
+import { DepositInput } from "src/shared/dto/deposit.input";
+import { TransactionArgsInput } from "src/shared/dto/transaction-args.input";
+import { WithdrawInput } from "src/shared/dto/withdraw.input";
 import { PaginatedResponse } from "src/shared/models/paginated-response.model";
+import { Transaction } from "src/shared/models/transaction.model";
 import { CreateSubAccountInput } from "src/sub-account/dto/create-sub-account.input";
-import { DepositInput } from "src/sub-account/dto/deposit.input";
 import { SubAccountArgsInput } from "src/sub-account/dto/sub-account-args.input";
-import { TransactionArgsInput } from "src/sub-account/dto/transaction-args.input";
-import { WithdrawInput } from "src/sub-account/dto/withdraw.input";
-import { SubAccountTransaction } from "src/sub-account/models/sub-account-transaction.model";
 import { SubAccount } from "src/sub-account/models/sub-account.model";
 
 const BASE_URL = `${NONAME_CARDS_API_URL}/issuing/sub-accounts`;
@@ -60,7 +60,7 @@ export class SubAccountService {
   getTransactions(
     id: string,
     params: TransactionArgsInput,
-  ): Observable<PaginatedResponse<SubAccountTransaction[]>> {
+  ): Observable<PaginatedResponse<Transaction[]>> {
     return this.httpService
       .get(`${BASE_URL}/${id}/transactions`, {
         ...NONAME_CARDS_AXIOS_CONFIG,
@@ -68,33 +68,29 @@ export class SubAccountService {
       })
       .pipe(
         map(
-          (
-            response: AxiosResponse<PaginatedResponse<SubAccountTransaction[]>>,
-          ) => response.data,
+          (response: AxiosResponse<PaginatedResponse<Transaction[]>>) =>
+            response.data,
         ),
       );
   }
 
-  withdraw(
-    id: string,
-    input: WithdrawInput,
-  ): Observable<SubAccountTransaction> {
+  withdraw(id: string, input: WithdrawInput): Observable<Transaction> {
     return this.httpService
       .post(`${BASE_URL}/${id}/withdraw`, input, NONAME_CARDS_AXIOS_CONFIG)
       .pipe(
         map(
-          (response: AxiosResponse<{ data: SubAccountTransaction }>) =>
+          (response: AxiosResponse<{ data: Transaction }>) =>
             response.data.data,
         ),
       );
   }
 
-  deposit(id: string, input: DepositInput): Observable<SubAccountTransaction> {
+  deposit(id: string, input: DepositInput): Observable<Transaction> {
     return this.httpService
       .post(`${BASE_URL}/${id}/deposit`, input, NONAME_CARDS_AXIOS_CONFIG)
       .pipe(
         map(
-          (response: AxiosResponse<{ data: SubAccountTransaction }>) =>
+          (response: AxiosResponse<{ data: Transaction }>) =>
             response.data.data,
         ),
       );
