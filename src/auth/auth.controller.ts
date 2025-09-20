@@ -1,6 +1,5 @@
 import * as fastify from "fastify";
 import {
-  BadRequestException,
   ClassSerializerInterceptor,
   Controller,
   Get,
@@ -12,7 +11,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
-import { catchError, from, Observable, of, switchMap, tap } from "rxjs";
+import { catchError, from, Observable, of, tap } from "rxjs";
 import { AuthService } from "src/auth/auth.service";
 import { JwtRefreshGuard } from "src/auth/guards/jwt-refresh.guard";
 import {
@@ -39,23 +38,7 @@ export class AuthController {
   ): Observable<{ user: AuthUser }> {
     const { initData } = req.body as { initData: string };
 
-    const isInitDataValid = this.authService.validateInitData(initData);
-
-    if (!isInitDataValid) {
-      throw new BadRequestException("AUTH__INVALID_INITDATA");
-    }
-
-    const telegram_id = this.authService
-      .parseInitData(initData)
-      .user?.id.toString();
-
-    if (!telegram_id) {
-      throw new BadRequestException("AUTH__INVALID_INITDATA");
-    }
-
-    return this.authService
-      .authorizeTelegramUser(telegram_id.toString())
-      .pipe(switchMap((user: User) => from(this.authService.login(user, res))));
+    return this.authService.signIn(initData, res);
   }
 
   @Get("me")

@@ -1,11 +1,11 @@
 import { MailerService } from "@nestjs-modules/mailer";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
-import { parse, isValid } from "@telegram-apps/init-data-node";
+import { parse, isValid, InitData } from "@telegram-apps/init-data-node";
 import { randomBytes, randomUUID } from "crypto";
 import * as fastify from "fastify";
-import { from, map, Observable, of, switchMap, tap } from "rxjs";
+import { catchError, from, map, Observable, of, switchMap, tap } from 'rxjs';
 import {
   ACCESS_TOKEN_EXPIRATION,
   ACCESS_TOKEN_KEY,
@@ -119,21 +119,58 @@ export class AuthService {
     );
   }
 
-  authorizeTelegramUser(telegram_id: string): Observable<User> {
-    return this.userService
-      .findByTelegramId(telegram_id)
-      .pipe(
-        switchMap((user: User | null) =>
-          user ? of(user) : this.userService.create({ telegram_id }),
-        ),
-      );
+  signIn(initData: string, res: fastify.FastifyReply) {
+    const isInitDataValid = this.validateInitData(initData);
+
+    if (!isInitDataValid) {
+      throw new BadRequestException("AUTH__INVALID_INITDATA");
+    }
+
+    const { first_name, last_name } = this.parseInitData(initData).user || {};
+    const telegram_id = this.parseInitData(initData).user?.id.toString();
+
+    if (!telegram_id) {
+      throw new BadRequestException("AUTH__INVALID_INITDATA");
+    }
+
+    return this.authorizeTelegramUser(telegram_id.toString(), {
+      first_name,
+      last_name,
+    }).pipe(
+      tap((user: User) => {
+        if (!user) {
+          throw new UnauthorizedException("AUTH__SIGN_IN_FAILED");
+        }
+      }),
+      switchMap((user: User) => from(this.login(user, res)))
+    );
   }
 
-  parseInitData(initData: string): any {
+  private authorizeTelegramUser(
+    telegram_id: string,
+    data: Pick<User, "first_name" | "last_name">,
+  ): Observable<User | null> {
+    const { first_name, last_name } = data;
+
+    return this.userService.findByTelegramId(telegram_id).pipe(
+      switchMap((user: User | null) =>
+        user
+          ? of(user)
+          : this.userService.create({
+              telegram_id,
+              ...(first_name && { first_name }),
+              ...(last_name && { last_name }),
+            }),
+      ),
+      catchError(() => this.userService.findByTelegramId(telegram_id)),
+    );
+  }
+
+  private parseInitData(initData: string): any {
     return parse(initData);
   }
 
-  validateInitData(initData: string): boolean {
+  private validateInitData(initData: string): boolean {
     return isValid(initData, process.env.TELEGRAM_BOT_TOKEN as string);
   }
 
