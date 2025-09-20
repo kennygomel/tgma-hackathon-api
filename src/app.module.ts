@@ -6,7 +6,9 @@ import { PassportModule } from "@nestjs/passport";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { JwtModule } from "@nestjs/jwt";
 import { UserModule } from "./user/user.module";
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from "./auth/auth.module";
+import { SubAccountModule } from "./sub-account/sub-account.module";
+import { CardModule } from "./card/card.module";
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { AuthModule } from './auth/auth.module';
     }),
     UserModule,
     AuthModule,
+    SubAccountModule,
+    CardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
