@@ -14,8 +14,8 @@ export class User extends BaseEntity {
   @Column({ type: "varchar", nullable: true, default: null })
   email?: string | null;
 
-  @Column({ nullable: true, default: null })
-  mobile?: string;
+  @Column({ type: "varchar", nullable: true, default: null })
+  mobile?: string | null;
 
   @Column({ default: false })
   email_confirmed: boolean;
