@@ -23,7 +23,7 @@ import { AuthService } from "./auth.service";
     UserService,
     JwtAccessStrategy,
     JwtRefreshStrategy,
-    // { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
 })
 export class AuthModule {}

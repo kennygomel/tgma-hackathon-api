@@ -1,13 +1,16 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Get,
   NotImplementedException,
   Param,
   Post,
+  UseInterceptors,
 } from "@nestjs/common";
 import { Observable } from "rxjs";
-import { TransactionArgsInput } from 'src/shared/dto/transaction-args.input';
+import { TransactionArgsInput } from "src/shared/dto/transaction-args.input";
+import { MaskSensitiveDataInterceptor } from "src/shared/interceptors/mask-sensitive-data.interceptor";
 import { PaginatedResponse } from "src/shared/models/paginated-response.model";
 import { Transaction } from "src/shared/models/transaction.model";
 import { CreateSubAccountInput } from "src/sub-account/dto/create-sub-account.input";
@@ -16,6 +19,7 @@ import { SubAccount } from "src/sub-account/models/sub-account.model";
 import { SubAccountService } from "src/sub-account/sub-account.service";
 
 @Controller("sub-account")
+@UseInterceptors(MaskSensitiveDataInterceptor, ClassSerializerInterceptor)
 export class SubAccountController {
   constructor(private readonly subAccountService: SubAccountService) {}
 

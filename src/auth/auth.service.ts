@@ -75,6 +75,10 @@ export class AuthService {
     );
   }
 
+  getMe(user: User): Observable<User | null> {
+    return this.userService.findOne({ where: { id: user.id } });
+  }
+
   requestEmailConfirmationMail(user: AuthUser): Observable<boolean> {
     const { id } = user;
 

@@ -1,6 +1,7 @@
 import * as fastify from "fastify";
 import {
   BadRequestException,
+  ClassSerializerInterceptor,
   Controller,
   Get,
   HttpCode,
@@ -9,6 +10,7 @@ import {
   Req,
   Res,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
 import { catchError, from, Observable, of, switchMap, tap } from "rxjs";
 import { AuthService } from "src/auth/auth.service";
@@ -20,9 +22,11 @@ import {
 import { CurrentUser } from "src/auth/shared/current-user.decorator";
 import { Public } from "src/auth/shared/public.decorator";
 import { AuthUser } from "src/auth/types/auth-user";
+import { MaskSensitiveDataInterceptor } from "src/shared/interceptors/mask-sensitive-data.interceptor";
 import { User } from "src/user/entities/user.entity";
 
 @Controller("auth")
+@UseInterceptors(MaskSensitiveDataInterceptor, ClassSerializerInterceptor)
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -55,12 +59,12 @@ export class AuthController {
   }
 
   @Get("me")
-  me(@CurrentUser() user: any) {
-    return user;
+  me(@CurrentUser() user: User) {
+    return this.authService.getMe(user);
   }
 
   @Get("request-email-confirmation")
-  requestEmailConfirmation(@CurrentUser() user: any): Observable<boolean> {
+  requestEmailConfirmation(@CurrentUser() user: User): Observable<boolean> {
     return this.authService.requestEmailConfirmationMail(
       user || { id: "b6909bd3-829a-4df3-b702-2f9aea7fea17" },
     );

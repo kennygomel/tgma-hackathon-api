@@ -1,5 +1,6 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
@@ -7,6 +8,7 @@ import {
   Patch,
   Post,
   Put,
+  UseInterceptors,
 } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { CardService } from "src/card/card.service";
@@ -23,10 +25,12 @@ import { UpdatedLimitsResponse } from "src/card/models/updated-limits-response.m
 import { DepositInput } from "src/shared/dto/deposit.input";
 import { TransactionArgsInput } from "src/shared/dto/transaction-args.input";
 import { WithdrawInput } from "src/shared/dto/withdraw.input";
+import { MaskSensitiveDataInterceptor } from "src/shared/interceptors/mask-sensitive-data.interceptor";
 import { PaginatedResponse } from "src/shared/models/paginated-response.model";
 import { Transaction } from "src/shared/models/transaction.model";
 
 @Controller("card")
+@UseInterceptors(MaskSensitiveDataInterceptor, ClassSerializerInterceptor)
 export class CardController {
   constructor(private readonly cardService: CardService) {}
 

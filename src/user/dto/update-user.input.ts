@@ -1,4 +1,9 @@
+import { IsOptional } from "class-validator";
+
 export class UpdateUserInput {
-  readonly id: string;
-  readonly telegram_id?: string;
+  @IsOptional()
+  readonly email?: string;
+
+  @IsOptional()
+  readonly mobile?: string;
 }
