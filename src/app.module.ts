@@ -9,6 +9,8 @@ import { UserModule } from "./user/user.module";
 import { AuthModule } from "./auth/auth.module";
 import { SubAccountModule } from "./sub-account/sub-account.module";
 import { CardModule } from "./card/card.module";
+import { ConfigModule } from './config/config.module';
+import { WalletModule } from './wallet/wallet.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { CardModule } from "./card/card.module";
     AuthModule,
     SubAccountModule,
     CardModule,
+    ConfigModule,
+    WalletModule,
   ],
   controllers: [AppController],
   providers: [AppService],
