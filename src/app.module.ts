@@ -1,3 +1,5 @@
+import { MailerModule } from "@nestjs-modules/mailer";
+import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
 import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -9,8 +11,8 @@ import { UserModule } from "./user/user.module";
 import { AuthModule } from "./auth/auth.module";
 import { SubAccountModule } from "./sub-account/sub-account.module";
 import { CardModule } from "./card/card.module";
-import { ConfigModule } from './config/config.module';
-import { WalletModule } from './wallet/wallet.module';
+import { ConfigModule } from "./config/config.module";
+import { WalletModule } from "./wallet/wallet.module";
 
 @Module({
   imports: [
@@ -41,6 +43,22 @@ import { WalletModule } from './wallet/wallet.module';
       global: true,
       secret: process.env.JWT_SECRET ?? "jwtSecretJwtSecretJwtSecret",
       signOptions: { expiresIn: "24h" },
+    }),
+    MailerModule.forRoot({
+      transport: {
+        host: process.env.SMTP_HOST,
+        port: +(process.env.SMTP_PORT ?? 587),
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      },
+      defaults: { from: '"evland" <mailer@ev.land>' },
+      template: {
+        dir: __dirname + "/email-templates",
+        adapter: new HandlebarsAdapter(),
+        options: { strict: true },
+      },
     }),
     UserModule,
     AuthModule,

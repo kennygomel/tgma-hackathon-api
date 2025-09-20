@@ -1,9 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { MailerService } from "@nestjs-modules/mailer";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { parse, isValid } from "@telegram-apps/init-data-node";
-import { randomUUID } from "crypto";
+import { randomBytes, randomUUID } from "crypto";
 import * as fastify from "fastify";
-import { Observable, of, switchMap } from "rxjs";
+import { from, map, Observable, of, switchMap, tap } from "rxjs";
 import {
   ACCESS_TOKEN_EXPIRATION,
   ACCESS_TOKEN_KEY,
@@ -18,6 +20,8 @@ import { UserService } from "src/user/user.service";
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly config: ConfigService,
+    private readonly mailerService: MailerService,
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
   ) {}
@@ -46,6 +50,69 @@ export class AuthService {
     await this.setAuthCookies(res, newAccess, newRefresh);
 
     return { user: { id: user.id, telegram_id: user.telegram_id } };
+  }
+
+  confirmEmail(token: string): Observable<User> {
+    return (
+      token ? this.userService.findByEmailConfirmationToken(token) : of(null)
+    ).pipe(
+      tap((user: User | null) => {
+        if (!user) {
+          throw new BadRequestException("Invalid or expired token");
+        }
+      }),
+      switchMap(
+        (user: User) =>
+          this.userService.updateOne(
+            { id: user.id },
+            {
+              email_confirmed: true,
+              email_confirmation_token: null,
+              email_confirmation_token_expires_at: null,
+            },
+          ) as Observable<User>,
+      ),
+    );
+  }
+
+  requestEmailConfirmationMail(user: AuthUser): Observable<boolean> {
+    const { id } = user;
+
+    return this.userService.findOne({ where: { id } }).pipe(
+      tap((user: User | null) => {
+        if (!user?.email) {
+          throw new BadRequestException("User didn't set email");
+        }
+
+        if (user?.email_confirmed) {
+          throw new BadRequestException("Email was already confirmed");
+        }
+      }),
+      switchMap(() =>
+        this.userService.updateOne(
+          { id },
+          {
+            email_confirmation_token: randomBytes(32).toString("hex"),
+            email_confirmation_token_expires_at: new Date(
+              Date.now() + 24 * 3600_000,
+            ),
+          },
+        ),
+      ),
+      switchMap((user: User) => {
+        const linkUrl = `${this.config.get("API_URL")}/auth/confirm-email/${user.email_confirmation_token}`;
+
+        return from(
+          this.mailerService.sendMail({
+            to: user.email as string,
+            subject: "Подтвердите почту",
+            template: "confirmation",
+            context: { linkUrl },
+          }),
+        );
+      }),
+      map(() => true),
+    );
   }
 
   authorizeTelegramUser(telegram_id: string): Observable<User> {

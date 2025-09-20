@@ -1,0 +1,122 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+  .wrapper {
+    background: #fff;
+    font-family: "Open Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    font-variation-settings:
+      "wdth" 100;
+  }
+  .header {
+    padding: 32px;
+    background: #f8fafc;
+  }
+  .header .logo {
+    width: 141px;
+    height: 40px;
+  }
+  .content {
+    padding:32px;
+  }
+  .content p {
+    max-width: 480px;
+    color: #101828;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 26px;
+  }
+  .content p:last-child {
+    margin-bottom: 0;
+  }
+  .content p.small {
+    color: #475467;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+  }
+  .button-wrapper {
+    margin: 24px 0;
+  }
+  .button {
+    padding: 10px 32px;
+    background-color: #50ad5d;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 26px;
+    text-decoration: none;
+    border-radius: 23px;
+  }
+  .footer {
+    padding: 32px;
+    background: #f8fafc;
+  }
+  .footer * {
+    max-width: 480px;
+    color: #101828;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 22px;
+    text-decoration: none;
+  }
+  .footer .section {
+    margin: 16px 0;
+  }
+  .footer .section > div:not(:last-child) {
+    margin-bottom:8px
+  }
+  .footer .logo {
+    width: 100px;
+    height: 28px;
+  }
+</style>
+<div class="wrapper">
+
+  <div class="header">
+
+    <img class="logo" src="https://placehold.co/141x38" alt="Logo" />
+
+  </div>
+
+  <div class="content">
+
+    <p><strong>Спасибо, что присоеденились!</strong></p>
+    <p>Чтобы начать полноценно пользоваться приложением, подтвердите Вашу электронную почту, нажав на кнопку ниже:</p>
+
+    <div class="button-wrapper">
+
+      <a class="button" href="{{linkUrl}}">Подтвердить почту</a>
+
+    </div>
+
+    <p class="small">Если не удаётся нажать на кнопку, перейдите по ссылке: <a href="{{linkUrl}}">{{linkUrl}}</a></p>
+
+    <p class="small"><strong>Обратите внимание:</strong> ссылка действует 24 часа.</p>
+
+    <p>С уважением, <br/><strong>TGMA Hackathon</strong></p>
+
+  </div>
+
+  <div class="footer">
+
+    <div>TGMA Hackathon</div>
+
+    <div class="section">
+      <a href="h#">Беларусь, г. Минск, ул. Газеты Правда, д. 11</a>
+    </div>
+
+    <div class="section">
+      <div>
+        <a href="tel:+375445790321">+375 (44) 579 03 21</a>
+      </div>
+    </div>
+
+    <div>
+      <img class="logo" src="https://placehold.co/141x38" alt="Logo" />
+    </div>
+
+  </div>
+
+</div>

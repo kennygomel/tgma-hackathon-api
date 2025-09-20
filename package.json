@@ -25,6 +25,7 @@
     "@fastify/cors": "^11.1.0",
     "@fastify/passport": "^3.0.2",
     "@fastify/session": "^11.1.0",
+    "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
